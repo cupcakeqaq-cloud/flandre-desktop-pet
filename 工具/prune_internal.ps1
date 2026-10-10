@@ -14,7 +14,13 @@
       Shiboken.pyd / shiboken6.abi3.dll  (+ qwindows, qmodernwindowsstyle, qico)
 
   RESULT (measured on this project)
-    _internal 125.06 MB -> 57.16 MB     (~68 MB saved, 54%)
+    _internal 125.26 MB -> 55.48 MB     (~70 MB saved, 56%)
+
+  KEPT ON PURPOSE
+    qwindows / qmodernwindowsstyle / qico (tray icon) / qjpeg / qgif,
+    ucrtbase + VCRUNTIME140* + PySide6\MSVCP140* (root has no MSVCP140 copy,
+    so the PySide6 and shiboken6 copies cannot be dropped),
+    PIL\_imagingcms (the 贴图 PNGs carry iCCP profiles).
 
   USAGE
     powershell -ExecutionPolicy Bypass -File prune_internal.ps1
@@ -60,6 +66,10 @@ $files = @(
     "PySide6\Qt6VirtualKeyboard.dll",
     # Mesa software OpenGL: this app uses no OpenGL at all
     "PySide6\opengl32sw.dll",
+    # SVG: the repo contains no .svg asset at all, and nothing calls QSvgRenderer
+    "PySide6\Qt6Svg.dll",
+    "PySide6\plugins\imageformats\qsvg.dll",
+    "PySide6\plugins\iconengines\qsvgicon.dll",
     # alternative platform plugin; the default qwindows.dll is kept
     "PySide6\plugins\platforms\qdirect2d.dll",
     # image formats never used (app only opens PNG / ICO / JPG)
@@ -75,7 +85,18 @@ $files = @(
     "_ssl.pyd",
     "_hashlib.pyd",
     # Pillow AVIF codec: only PNG is ever opened
-    "PIL\_avif.cp312-win_amd64.pyd"
+    "PIL\_avif.cp312-win_amd64.pyd",
+    # Pillow optional accelerators, none of them referenced by src/ or by Pillow's
+    # own PNG path (_imagingcms is deliberately KEPT: every 贴图 PNG carries a
+    # 3144-byte iCCP profile)
+    "PIL\_webp.cp312-win_amd64.pyd",
+    "PIL\_imagingmath.cp312-win_amd64.pyd",
+    "PIL\_imagingtk.cp312-win_amd64.pyd",
+    # stdlib C extensions for xml / lzma / decimal: unreachable from src/ or Qt/PIL
+    "_elementtree.pyd",
+    "pyexpat.pyd",
+    "_lzma.pyd",
+    "_decimal.pyd"
 )
 
 $dirs = @(
