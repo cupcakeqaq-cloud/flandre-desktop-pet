@@ -151,6 +151,7 @@ class PetWindow(QWidget):
         self.timer_mood = ""
         self.timer_mood_until = 0.0
         self.last_interaction = time.monotonic()
+        self._click_times = []        # 频繁点击的时间戳列表（见 CLICK_ANNOY_*）
 
         # 拖拽 / 坠落
         self._press_global = None
@@ -465,6 +466,17 @@ class PetWindow(QWidget):
                 return max(-1000.0, min(1000.0, vx))
         return 0.0
 
+    def _clicks_annoyed(self):
+        """窗口内被反复点击就生气；返回 True 表示这次点击该发火。"""
+        now = time.monotonic()
+        self._click_times = [t for t in self._click_times
+                             if now - t < config.CLICK_ANNOY_WINDOW]
+        self._click_times.append(now)
+        if len(self._click_times) >= config.CLICK_ANNOY_COUNT:
+            self._click_times.clear()
+            return True
+        return False
+
     def _on_click(self):
         self.last_interaction = time.monotonic()
         if self.state == S.REST:
@@ -476,6 +488,9 @@ class PetWindow(QWidget):
             if self._rest_wake_count >= config.REST_WAKE_LIMIT:
                 # 一直点一直坐着不像话：点到上限就直接起身（台词还挂在气泡上，人会站起来说）
                 self._leave_rest()
+        elif self.state in (S.STAND, S.RUN) and self._clicks_annoyed():
+            # 频繁点击：贴图切「站立\3.png」（angry 帧）+ 一句不耐烦
+            self.say(dialogue.pick("click_annoy") or "别戳啦！", mood="angry")
         elif self.state == S.STAND:
             # 左键：小概率出选项，其次闲聊/季节问候，其余是短应答
             if random.random() < 0.15:

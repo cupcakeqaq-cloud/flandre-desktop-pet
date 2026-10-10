@@ -2,8 +2,8 @@
   "nickname": "你",
   "nickname_replace_all": false,
   "bubble_offset": [
-    55.89597439835309,
-    -90
+    196,
+    -192
   ],
   "bubble_duration": 5.0,
   "live_bubble": true,

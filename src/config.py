@@ -99,3 +99,7 @@ ACTIVE_IDLE_CHANCE = 0.75                # 定时器到点时抽到闲聊的概�
 ACTIVE_SEASON_CHANCE = 0.08              # 定时器到点时抽到季节问候的概率
 CLICK_IDLE_CHANCE = 0.25                 # 左键点击时抽到闲聊（而非短应答）的概率
 CLICK_SEASON_CHANCE = 0.05               # 左键点击时抽到季节问候的概率
+
+# 频繁点击：窗口内累计 CLICK_ANNOY_COUNT 次就生气（贴图切「站立\3.png」+ 一句不耐烦）
+CLICK_ANNOY_COUNT = 5                    # 触发所需点击数（触发后重新计数）
+CLICK_ANNOY_WINDOW = 3.0                 # 计数窗口（秒），窗口外的旧点击自动作废

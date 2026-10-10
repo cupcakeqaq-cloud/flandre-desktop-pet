@@ -1,5 +1,6 @@
 # 开发环境与构建产物（都能重建，不入库）
 .venv/
+.pysite/
 _internal/
 .tmp/
 __pycache__/
