@@ -1,19 +1,18 @@
-# 开发环境与构建产物（都能重建，不入库）
+# 开发环境（能从 桌面\芙兰.zip 重建，不入库）
 .venv/
 .pysite/
-_internal/
 .tmp/
 __pycache__/
 *.pyc
 *.pyo
 *.spec
 
-# 可执行文件是打包产物，不进仓库（要给别人玩就打发布包，见 §4.5）
-/芙兰朵露.exe
-/FlandrePet.exe
+# 可执行文件与 _internal 都进仓库：
+# 别人下载 GitHub 源码仓库的 zip，解压后直接双击 芙兰朵露.exe 就能用，不用装 Python
 
 # 运行时生成的用户数据 / 日志
 data/gift.log
+data/settings.json
 data/*.tmp
-收藏/
+collect/
 debug.log

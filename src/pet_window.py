@@ -127,7 +127,7 @@ class PetWindow(QWidget):
         self.run_duration = 0.0
         self.walk_duration = 0.0
         self._rest_pending_at = 0.0   # 空闲到点但还在跑/走：等满宽限期再坐下打盹
-        self._rest_woken = False      # 打盹中被点醒（说话期间用 休息\1.png）
+        self._rest_woken = False      # 打盹中被点醒（说话期间用 rest\1.png）
         self._rest_wake_count = 0     # 这一觉被点醒了几次（够 REST_WAKE_LIMIT 次就直接起身）
         self._rest_wake_bubble = False  # 当前气泡是「被点醒的不满」，不受计时器守卫影响，必须自动收
 
@@ -480,7 +480,7 @@ class PetWindow(QWidget):
     def _on_click(self):
         self.last_interaction = time.monotonic()
         if self.state == S.REST:
-            # 被点醒：一句「不满被打扰」，贴图切 休息\1.png；对话结束自动回站立
+            # 被点醒：一句「不满被打扰」，贴图切 rest\1.png；对话结束自动回站立
             self._rest_woken = True
             self._rest_wake_count += 1
             self.say(dialogue.pick("rest_wake") or "唔……干嘛呀。")
@@ -489,7 +489,7 @@ class PetWindow(QWidget):
                 # 一直点一直坐着不像话：点到上限就直接起身（台词还挂在气泡上，人会站起来说）
                 self._leave_rest()
         elif self.state in (S.STAND, S.RUN) and self._clicks_annoyed():
-            # 频繁点击：贴图切「站立\3.png」（angry 帧）+ 一句不耐烦
+            # 频繁点击：贴图切「stand\3.png」（angry 帧）+ 一句不耐烦
             self.say(dialogue.pick("click_annoy") or "别戳啦！", mood="angry")
         elif self.state == S.STAND:
             # 左键：小概率出选项，其次闲聊/季节问候，其余是短应答
@@ -903,9 +903,9 @@ class PetWindow(QWidget):
             self.say(dialogue.pick("gift_fail") or "诶……这个动不了。")
 
     def _move_into_collect(self, p):
-        """把文件真正「移动」到 收藏\\：同盘改名；跨盘复制后删源并校验。
+        """把文件真正「移动」到 collect\\：同盘改名；跨盘复制后删源并校验。
 
-        任一步失败都回滚掉刚落到 收藏\\ 的副本，绝不留下「源和目标都在」
+        任一步失败都回滚掉刚落到 collect\\ 的副本，绝不留下「源和目标都在」
         的复制粘贴假象。返回 (是否成功, 原因)。
         """
         import os
@@ -940,7 +940,7 @@ class PetWindow(QWidget):
         return self._move_by_copy(p, target)
 
     def _move_by_copy(self, p, target):
-        """复制到 收藏\\ → 清只读位 → 删源 → 校验；任一步失败都回滚副本。
+        """复制到 collect\\ → 清只读位 → 删源 → 校验；任一步失败都回滚副本。
 
         绝不留下「源和目标都在」的复制粘贴假象。返回 (是否成功, 原因)。
         """
