@@ -1,0 +1,14 @@
+# 开发环境与构建产物（都能重建，不入库）
+.venv/
+_internal/
+.tmp/
+__pycache__/
+*.pyc
+*.pyo
+*.spec
+
+# 运行时生成的用户数据 / 日志
+data/gift.log
+data/*.tmp
+收藏/
+debug.log
