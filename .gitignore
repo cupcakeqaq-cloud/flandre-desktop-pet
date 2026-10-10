@@ -8,6 +8,10 @@ __pycache__/
 *.pyo
 *.spec
 
+# 可执行文件是打包产物，不进仓库（要给别人玩就打发布包，见 §4.5）
+/芙兰朵露.exe
+/FlandrePet.exe
+
 # 运行时生成的用户数据 / 日志
 data/gift.log
 data/*.tmp
