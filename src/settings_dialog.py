@@ -61,10 +61,10 @@ class SettingsDialog(QDialog):
         self.nickname.setPlaceholderText("你")
         self.nickname.setMaxLength(12)
         form1.addRow("怎么称呼你", self.nickname)
-        self.nick_replace_all = QCheckBox("台词里所有「你」都替换成称呼")
-        self.nick_replace_all.setChecked(bool(s.get("nickname_replace_all", False)))
-        self.nick_replace_all.setToolTip("关掉时只替换台词里写了 {nickname} 的位置")
-        form1.addRow("", self.nick_replace_all)
+        hint = QLabel("芙兰说话时提到的称呼都会跟着这里变。")
+        hint.setObjectName("muted")
+        hint.setWordWrap(True)
+        form1.addRow("", hint)
         root.addWidget(card1)
 
         # ---- 气泡显示 ----
@@ -141,7 +141,6 @@ class SettingsDialog(QDialog):
     def _reset(self):
         d = DEFAULT_SETTINGS
         self.nickname.setText(d.get("nickname", "你"))
-        self.nick_replace_all.setChecked(bool(d.get("nickname_replace_all", False)))
         self.bubble_dur.setValue(float(d.get("bubble_duration", 5.0)))
         self.live_bubble.setChecked(bool(d.get("live_bubble", True)))
         self.ui_font.setChecked(d.get("ui_font", "source") == "system")
@@ -149,7 +148,6 @@ class SettingsDialog(QDialog):
     def _save(self):
         s = load_settings()
         s["nickname"] = self.nickname.text().strip() or "你"
-        s["nickname_replace_all"] = self.nick_replace_all.isChecked()
         s["bubble_duration"] = float(self.bubble_dur.value())
         s["live_bubble"] = self.live_bubble.isChecked()
         s["ui_font"] = "system" if self.ui_font.isChecked() else "source"

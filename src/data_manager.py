@@ -20,7 +20,6 @@ DEFAULT_POMODORO = {
 
 DEFAULT_SETTINGS = {
     "nickname": "你",
-    "nickname_replace_all": False,
     "bubble_offset": None,
     "bubble_duration": 5.0,
     # 番茄钟倒计时期间每秒刷新气泡（会临时抬高气泡自动隐藏时长）

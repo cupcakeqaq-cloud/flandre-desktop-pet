@@ -841,13 +841,12 @@ class PetWindow(QWidget):
         self.settings = load_settings()
 
     def _apply_nickname(self, text):
+        # 台词里的称呼统一写成 {nickname}，dialogue.pick() 里已经替换过一遍；
+        # 这里再兜一次：万一某句模板 .format() 失败被原样返回，气泡里也不会漏出 {nickname}。
         if not text:
             return text
         nick = self.settings.get("nickname", "你") or "你"
-        text = text.replace("{nickname}", nick)
-        if self.settings.get("nickname_replace_all", False):
-            text = text.replace("你", nick)
-        return text
+        return text.replace("{nickname}", nick)
 
     # ---------- 赠礼（拖放文件） ----------
     def dragEnterEvent(self, e):
