@@ -12,16 +12,16 @@ def app_dir() -> Path:
 
 
 APP_DIR = app_dir()
-TEX_DIR = APP_DIR / "images"
+TEX_DIR = APP_DIR / "贴图"
 DATA_DIR = APP_DIR / "data"
-COLLECT_DIR = APP_DIR / "collect"
+COLLECT_DIR = APP_DIR / "收藏"
 FONT_DIR = APP_DIR / "font"
 SOUND_DIR = APP_DIR / "sound"
 
-STAND_DIR = TEX_DIR / "stand"
-RUN_DIR = TEX_DIR / "run"
-PICK_DIR = TEX_DIR / "picked"
-REST_DIR = TEX_DIR / "rest"
+STAND_DIR = TEX_DIR / "站立"
+RUN_DIR = TEX_DIR / "奔跑"
+PICK_DIR = TEX_DIR / "拎起"
+REST_DIR = TEX_DIR / "休息"
 ICON_PATH = TEX_DIR / "icon.ico"
 
 # 显示尺寸（源图 1000x1000 等比缩放为方形）
@@ -34,7 +34,7 @@ WING_ANCHOR = (690, 70)
 # 贴图底部留白补偿：整体下移，消除「悬空」感
 GROUND_OFFSET = 3
 
-# 落地（picked\5.png）时窗口整体下移，消除「悬空」感
+# 落地（拎起\5.png）时窗口整体下移，消除「悬空」感
 # 起身/切到别的状态时自动复位，避免一直陷进任务栏
 LAND_OFFSET_PX = 7
 
@@ -72,10 +72,10 @@ STRUGGLE_RANDOM_MIN = 0.15               # 随机变快阶段的间隔下限
 STRUGGLE_RANDOM_MAX = 0.35               # 随机变快阶段的间隔上限
 STRUGGLE_RANDOM_HOLD = (0.8, 2.0)        # 随机阶段每隔多久重新抽一次速度
 
-# 坠落（松手 → picked\3.png → picked\4.png → 落地 picked\5.png）
+# 坠落（松手 → 拎起\3.png → 拎起\4.png → 落地 拎起\5.png）
 FALL_NEAR_GROUND = DISPLAY_SIZE / 3.0    # 距任务栏不足该距离时切「下坠」帧
 THROW_MIRROR_MIN_VX = 40.0               # 向右甩出速度超过该值则整段坠落镜像朝右
-FALL_RECOVER = 2.0                       # 倒地(picked\5.png)保持时长，之后起身站立
+FALL_RECOVER = 2.0                       # 倒地(拎起\5.png)保持时长，之后起身站立
 
 # 走路（站立态随机走两步，复用奔跑贴图，速度与切帧都比奔跑慢）
 WALK_SPEED_PX = DISPLAY_SIZE             # 每秒一个身位（奔跑的一半）
@@ -100,6 +100,6 @@ ACTIVE_SEASON_CHANCE = 0.08              # 定时器到点时抽到季节问候�
 CLICK_IDLE_CHANCE = 0.25                 # 左键点击时抽到闲聊（而非短应答）的概率
 CLICK_SEASON_CHANCE = 0.05               # 左键点击时抽到季节问候的概率
 
-# 频繁点击：窗口内累计 CLICK_ANNOY_COUNT 次就生气（贴图切「stand\3.png」+ 一句不耐烦）
+# 频繁点击：窗口内累计 CLICK_ANNOY_COUNT 次就生气（贴图切「站立\3.png」+ 一句不耐烦）
 CLICK_ANNOY_COUNT = 5                    # 触发所需点击数（触发后重新计数）
 CLICK_ANNOY_WINDOW = 3.0                 # 计数窗口（秒），窗口外的旧点击自动作废
