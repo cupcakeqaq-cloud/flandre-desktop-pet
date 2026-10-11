@@ -1,3 +1,6 @@
+# 著作权归 12あKa@被告人杯糕_ 所有；使用/二转/二改一律以 README.md（README.pdf）里的作者规则为准
+# Copyright (C) 2026 12あKa@被告人杯糕_ —— 源代码由 deepseek-v4-flash 编写
+
 """对话气泡。
 
 2026-10-08 第五批：
@@ -165,13 +168,15 @@ class SpeechBubble(QWidget):
                 self._opt_buttons.append(b)
 
     # ---------- 展示 ----------
+    # 注意：这两个方法**不要**发 `moved` 信号。adjustSize() 会让气泡变宽变高，
+    # 而屏幕边缘的夹取（pet_window._position_bubble）会把左上角推走；一旦把
+    # 「夹取后的位置」当成用户拖拽存进 bubble_offset，下次内容再变就又夹一次
+    # —— 表现为「对话框每变一次就往左跑一点」。`moved` 只归鼠标拖拽用。
     def show_message(self, text, options=None):
         """弹出一段话（清空后重建按钮）。"""
         self.label.setText(text or "")
         self._build_options(options)
         self.adjustSize()
-        if self.isVisible():
-            self.moved.emit(self.x(), self.y())
 
     def set_live(self, text, options=None):
         """原地刷新：正文变了就改字，按钮结构没变就不重建（避免闪烁）。"""
@@ -181,8 +186,6 @@ class SpeechBubble(QWidget):
         if self._options_key(new_options) != self._buttons_key:
             self._build_options(new_options)
         self.adjustSize()
-        if self.isVisible():
-            self.moved.emit(self.x(), self.y())
 
     # ---------- 事件 ----------
     def _on_close(self):
