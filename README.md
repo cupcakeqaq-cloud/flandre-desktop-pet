@@ -308,6 +308,7 @@
 - 源码在 `src\` 里（Python 3.12 + PySide6 + Pillow，用 PyInstaller 按 onedir 方式打包）。
 - **改 `.py` 文件必须重新打包才能生效**；改 `data\dialogue.json` 和 `贴图\` 里的图片则不用，重启程序就行。
 - 打包大致流程：装好依赖 → `pyinstaller` 用 onedir 模式打 `src\main.py` → 把 `贴图\`、`data\`、`font\`、`sound\` 一起放到输出目录里 → 打包出来的 exe 必须和 `_internal\` 同目录。
+- 只改了 `src\` 里的 `.py`、没加新依赖的话，有更省事的办法（不用跑上面整套）：`.venv\Scripts\python.exe 工具\repack.py --smoke`，几秒钟把新代码换进 `芙兰朵露.exe` 并自动启动验证一次。原理和注意事项见 `交接文档.md` 的 §4.6。
 - 常见坑：图标要用 `贴图\icon.ico`；`font\` 里的思源黑体要用上就得一起带上；Qt 插件缺了会直接起不来（PyInstaller 的 PySide6 hook 会自动收集，但精简过头就会漏）。
 - 改完记得把 exe 文件名、readme 里的版本号一起更新一下。
 

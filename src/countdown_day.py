@@ -109,7 +109,7 @@ class CountdownDayDialog(QDialog):
 
         type_row = QHBoxLayout()
         type_row.setSpacing(8)
-        self.type_combo = QComboBox()
+        self.type_combo = theme.ChevronComboBox()
         self.type_combo.setEditable(True)
         self.type_combo.setInsertPolicy(QComboBox.NoInsert)
         reload_types(self.type_combo, "countdown")
@@ -125,7 +125,7 @@ class CountdownDayDialog(QDialog):
         self.name_edit.setPlaceholderText("例如：期末考试 / 和朋友的约定")
         form.addRow("事件名称", self.name_edit)
 
-        self.date_edit = QDateEdit()
+        self.date_edit = theme.ChevronDateEdit()
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setDisplayFormat("yyyy-MM-dd")

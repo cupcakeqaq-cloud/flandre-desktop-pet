@@ -23,6 +23,17 @@ TEXT = "#4a3b2e"
 # 以 @ 开头的 reply 是计时器控制指令，不是对话选项
 CONTROL_PREFIX = "@"
 
+# ---------- 气泡尺寸 ----------
+# 2026-10-08 第十批：以前这里用 self.adjustSize()，而开了 wordWrap 的 QLabel
+# sizeHint() 是**不可靠**的（实测同一句话能算出 43/65/87 三种高度、宽度还会
+# 被上一次内容污染），于是「字数差不多的句子宽度不一样」。
+# 2026-10-15 第十八批：用户又提「长文本把气泡撑太长，能不能把框固定住」——
+# 于是宽度干脆全固定成 BUBBLE_W，长句自己在里面换行。
+#   宽度 = BUBBLE_W（常量，所有气泡一样宽）
+#   高度 = label.heightForWidth(定宽)  ← wordWrap 下这个方法才是可靠的
+BUBBLE_W = 260         # 气泡固定宽度（改这个数就能整体调宽窄），上限也是它
+OUTER_W = 24           # outer 左右内容边距 14 + 10
+
 
 class SpeechBubble(QWidget):
     closed = Signal()
@@ -33,7 +44,6 @@ class SpeechBubble(QWidget):
         super().__init__(None, Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_ShowWithoutActivating)
-        self.setMaximumWidth(330)
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(14, 10, 10, 12)
@@ -166,17 +176,48 @@ class SpeechBubble(QWidget):
                 b.setMinimumHeight(32)
                 self.opts_layout.addWidget(b)
                 self._opt_buttons.append(b)
+        # 进布局后必须显式置为「显示」：QPushButton 新建时是隐藏态，气泡已经可见时
+        # 插进布局不会被自动显示，而布局对隐藏项按空项算（0 高）→ 整个气泡高度少算
+        # 一截，按钮最后被挤成没字的实心小条。父窗口不可见时这里只是记下状态，
+        # 等气泡 show() 时一起出现，不会提前冒到桌面上。
+        for b in self._opt_buttons:
+            b.setVisible(True)
 
     # ---------- 展示 ----------
-    # 注意：这两个方法**不要**发 `moved` 信号。adjustSize() 会让气泡变宽变高，
-    # 而屏幕边缘的夹取（pet_window._position_bubble）会把左上角推走；一旦把
-    # 「夹取后的位置」当成用户拖拽存进 bubble_offset，下次内容再变就又夹一次
-    # —— 表现为「对话框每变一次就往左跑一点」。`moved` 只归鼠标拖拽用。
+    # 注意：这两个方法**不要**发 `moved` 信号。气泡变宽变高会让屏幕边缘的夹取
+    # （pet_window._position_bubble）把左上角推走；一旦把「夹取后的位置」当成
+    # 用户拖拽存进 bubble_offset，下次内容再变就又夹一次——表现为「对话框每变
+    # 一次就往左跑一点」。`moved` 只归鼠标拖拽用。
+    def _fit_size(self):
+        """算定尺寸：宽度一律 BUBBLE_W，高度按这个定宽排版实测。
+
+        高度 = heightForWidth(定宽) + 布局里「除正文以外」的部分，后者用把正文
+        高度临时设成 0 再问一次 layout().sizeHint() 拿到——这样按钮/分割线怎么
+        变都自动算进去，不用手抄一串魔法数字。
+
+        坑（2026-10-15 第十八批第二轮）：**量之前必须先把正文的固定高度清成 0**。
+        `QLabelPrivate::sizeForWidth()` 开头就是 `int h = q->height()`，结尾还有
+        `if (h > br.height()) br.setHeight(h)`——**当前高度会当成返回值下限**。所以
+        上一条长台词把高度顶到 87 之后，短台词也永远量到 87，气泡只会越长越高，
+        再也缩不回去（用户报的「触发长对话后气泡就变大了」）。
+        """
+        label_w = BUBBLE_W - OUTER_W
+        self.label.setFixedWidth(label_w)          # 先定宽，heightForWidth 才有意义
+        self.label.setFixedHeight(0)               # 再清掉上次的高度下限
+        h = self.label.heightForWidth(label_w)
+        if h <= 0:                                  # 兜底：极少数字体量不出高度
+            h = self.label.fontMetrics().height()
+        lay = self.layout()
+        extra = lay.sizeHint().height() if lay is not None else 0
+        self.label.setFixedHeight(int(h))
+        self.setFixedWidth(BUBBLE_W)
+        self.setFixedHeight(int(h) + int(extra))
+
     def show_message(self, text, options=None):
         """弹出一段话（清空后重建按钮）。"""
         self.label.setText(text or "")
         self._build_options(options)
-        self.adjustSize()
+        self._fit_size()
 
     def set_live(self, text, options=None):
         """原地刷新：正文变了就改字，按钮结构没变就不重建（避免闪烁）。"""
@@ -185,7 +226,7 @@ class SpeechBubble(QWidget):
         new_options = [o for o in (options or []) if o and o.get("label")]
         if self._options_key(new_options) != self._buttons_key:
             self._build_options(new_options)
-        self.adjustSize()
+        self._fit_size()
 
     # ---------- 事件 ----------
     def _on_close(self):

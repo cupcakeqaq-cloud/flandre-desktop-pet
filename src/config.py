@@ -51,6 +51,11 @@ GIFT_MAX_BYTES = 100 * 1024 * 1024       # 100 MiB（一次拖放所有条目累
 # UI 主色
 UI_COLOR = "#836953"
 
+# 弹出菜单：线性图标是代码画的（打包版没带 Qt6Svg），关掉就退回纯文字菜单
+ICON_IN_MENU = True
+MENU_ICON_COLOR = "#836953"
+MENU_ICON_SIZE = 20          # 18 时描出来的番茄看不清细节，20 刚好
+
 # 任务完成时的开心表情（站立 4.png）保持时长；同时会刷新气泡，所以两者取大值
 DONE_MOOD_SECONDS = 6.0
 

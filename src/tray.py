@@ -3,9 +3,10 @@
 
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QSystemTrayIcon, QMenu
+from PySide6.QtWidgets import QSystemTrayIcon
 
-from config import ICON_PATH, APP_NAME
+import theme
+from config import ICON_PATH, APP_NAME, MENU_ICON_COLOR
 
 
 class Tray(QObject):
@@ -16,12 +17,10 @@ class Tray(QObject):
         self.icon = QSystemTrayIcon(QIcon(str(ICON_PATH)))
         self.icon.setToolTip(APP_NAME)
 
-        self.menu = QMenu()
-        self.toggle_action = self.menu.addAction("隐藏")
-        self.toggle_action.triggered.connect(self.toggle)
+        self.menu = theme.make_menu()                # 与右键菜单同一套圆角+图标
+        self.toggle_action = theme.add_item(self.menu, "隐藏", "hide", self.toggle)
         self.menu.addSeparator()
-        quit_action = self.menu.addAction("退出")
-        quit_action.triggered.connect(self.quit)
+        theme.add_item(self.menu, "退出", "quit", self.quit)
 
         self.icon.setContextMenu(self.menu)
         self.icon.activated.connect(self.on_activated)
@@ -39,7 +38,10 @@ class Tray(QObject):
             self.toggle()
 
     def update_visibility(self):
-        self.toggle_action.setText("隐藏" if self.pet.isVisible() else "显示")
+        visible = self.pet.isVisible()
+        self.toggle_action.setText("隐藏" if visible else "显示")
+        self.toggle_action.setIcon(
+            theme.icon("hide" if visible else "eye", MENU_ICON_COLOR))
 
     def quit(self):
         self.icon.hide()

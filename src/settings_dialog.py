@@ -74,7 +74,7 @@ class SettingsDialog(QDialog):
         card2, form2 = _card(
             "气泡显示",
             "气泡时长决定一句话停留多久；计时器运行时不会自动收起，暂停/停止按钮一直可用。")
-        self.bubble_dur = QDoubleSpinBox()
+        self.bubble_dur = theme.ChevronDoubleSpinBox()
         self.bubble_dur.setRange(2, 60)
         self.bubble_dur.setValue(float(s.get("bubble_duration", 5.0)))
         self.bubble_dur.setSuffix(" 秒")

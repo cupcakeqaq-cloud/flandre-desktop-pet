@@ -20,10 +20,12 @@ class HourlyReporter(QObject):
 
     def _check(self):
         now = time.localtime()
+        # 跨小时的判定放宽到「整点后 5 分钟内」。只比 tm_hour 的话，电脑睡眠/短暂卡顿
+        # 会让 20 秒的轮询整个跳过那一分钟，这一小时的播报就永远没了。
         if self._last_hour is None:
             self._last_hour = now.tm_hour
             return
-        if now.tm_hour != self._last_hour:
+        if now.tm_hour != self._last_hour and now.tm_min <= 5:
             self._last_hour = now.tm_hour
             greeting = dialogue.pick("hourly_" + dialogue.period_key())
             self.pet.say(f"现在{now.tm_hour}点啦。" + greeting)

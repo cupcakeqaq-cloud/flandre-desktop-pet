@@ -5,6 +5,7 @@ import random
 import time
 
 _dialogue = None
+_last_said = {}          # 类别 -> 上一次说过的那条（只用来避免「紧接着又抽到同一条」）
 
 
 def _ensure():
@@ -12,6 +13,7 @@ def _ensure():
     if _dialogue is None:
         from data_manager import load_dialogue
         _dialogue = load_dialogue()
+        _last_said.clear()
 
 
 def _nickname():
@@ -30,12 +32,17 @@ def _fmt(text, ctx):
 
 
 def pick(category, **ctx):
-    """随机取一条指定类别的文案；支持 {name}/{days}/{hour}/{nickname} 等占位符。"""
+    """随机取一条指定类别的文案；支持 {name}/{days}/{hour}/{nickname} 等占位符。
+
+    只排除「紧接着又抽到同一条」，不做整轮的乱序洗牌——用户要的就是这个程度。
+    """
     _ensure()
     lines = _dialogue.get(category)
     if not lines:
         return ""
-    line = random.choice(lines)
+    pool = [x for x in lines if x != _last_said.get(category)] or list(lines)
+    line = random.choice(pool)
+    _last_said[category] = line
     if not isinstance(line, str):
         return ""
     if "nickname" not in ctx:

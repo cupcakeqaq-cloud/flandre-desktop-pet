@@ -341,7 +341,19 @@ class PetWindow(QWidget):
         self.bubble.show_message(text, options)
         self.bubble.show()
         self.bubble.raise_()
+        self._raise_dialogs()
         self._position_bubble()
+
+    def _raise_dialogs(self):
+        """把开着的功能窗重新抬到最上面。
+
+        气泡每次说话都会 `raise_()`，不压回去就会出现「人物被窗口盖住、气泡却飘在
+        窗口上面」的奇观（用户 2026-10-15 报的）。功能窗自己在 setup_dialog 里也
+        带了置顶标志，两边配合才是确定的上/下关系：功能窗 > 气泡 > 桌宠。
+        """
+        for dlg in getattr(self, "_dlgs", {}).values():
+            if dlg.isVisible():
+                dlg.raise_()
 
     def _position_bubble(self):
         bsize = self.bubble.size()
@@ -750,20 +762,31 @@ class PetWindow(QWidget):
 
     # ---------- 菜单 / 托盘 ----------
     def contextMenuEvent(self, e):
-        menu = QMenu(self)
-        menu.setStyleSheet(theme.QSS)
-        menu.addAction("隐藏", self.hide_pet)
-        menu.addSeparator()
-        menu.addAction("番茄钟", self._menu_pomodoro)
-        menu.addAction("倒计时", self._menu_countdown)
-        menu.addAction("倒数日", self._menu_countdown_day)
-        menu.addAction("待办清单", self._menu_todo)
-        menu.addSeparator()
-        menu.addAction("打开收藏文件夹", self._menu_open_collect)
-        menu.addAction("设置", self._menu_settings)
-        menu.addSeparator()
-        menu.addAction("退出", self.quit_pet)
-        menu.exec(e.globalPos())
+        # 菜单项：(文案, 图标名, 回调)，图标名见 theme._ICONS；文案换成 "" 就是分隔线
+        items = [
+            ("隐藏", "hide", self.hide_pet),
+            ("", "", None),
+            ("番茄钟", "tomato", self._menu_pomodoro),
+            ("倒计时", "timer", self._menu_countdown),
+            ("倒数日", "day", self._menu_countdown_day),
+            ("待办清单", "todo", self._menu_todo),
+            ("", "", None),
+            ("打开收藏文件夹", "folder", self._menu_open_collect),
+            ("设置", "settings", self._menu_settings),
+            ("", "", None),
+            ("退出", "quit", self.quit_pet),
+        ]
+        menu = theme.make_menu(self)
+        for text, icon_name, callback in items:
+            if not text:
+                menu.addSeparator()
+            else:
+                theme.add_item(menu, text, icon_name, callback)
+        if isinstance(menu, theme.RoundedMenu):
+            menu.show_padded(e.globalPos())          # 圆角菜单要先算尺寸再摆位
+            menu.exec()
+        else:
+            menu.exec(e.globalPos())
 
     # ---------- 功能入口 ----------
     def show_dialog(self, key, factory):

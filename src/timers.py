@@ -57,7 +57,7 @@ def _mmss(seconds):
 def _work_line(phase, index, done, total, task_type, remain):
     """番茄钟气泡正文：标题 + 进度 + 剩余时间，一眼能看全。
 
-    每行都刻意压短（气泡最宽 330px，像素字体 11pt 一行约 15 个汉字），
+    每行都刻意压短（气泡正文宽 236px，像素字体 11pt 一行约 15 个汉字），
     否则会自动折行、折在「个」这种字上很难看。
     """
     index = max(1, min(int(index), int(total)))
@@ -238,33 +238,33 @@ class PomodoroDialog(QDialog):
 
         card, form = theme.card_form()
 
-        self.focus = QSpinBox()
+        self.focus = theme.ChevronSpinBox()
         self.focus.setRange(1, 180)
         self.focus.setValue(int(last.get("focus", 25)))
         self.focus.setSuffix(" 分钟")
         form.addRow("专注时长", self.focus)
 
-        self.break_ = QSpinBox()
+        self.break_ = theme.ChevronSpinBox()
         self.break_.setRange(1, 60)
         self.break_.setValue(int(last.get("break", 5)))
         self.break_.setSuffix(" 分钟")
         form.addRow("短休息", self.break_)
 
-        self.cycles = QSpinBox()
+        self.cycles = theme.ChevronSpinBox()
         self.cycles.setRange(1, 20)
         self.cycles.setValue(int(last.get("cycles", 4)))
         self.cycles.setSuffix(" 个")
         self.cycles.setToolTip("这一轮要做几个番茄；做满就自动结束")
         form.addRow("循环次数", self.cycles)
 
-        self.long_every = QSpinBox()
+        self.long_every = theme.ChevronSpinBox()
         self.long_every.setRange(0, 12)
         self.long_every.setValue(int(last.get("long_every", 4)))
         self.long_every.setSuffix(" 个")
         self.long_every.setToolTip("每做满这么多个番茄，休息一次长的；填 0 表示不要长休息")
         form.addRow("每几个番茄长休息", self.long_every)
 
-        self.long_break = QSpinBox()
+        self.long_break = theme.ChevronSpinBox()
         self.long_break.setRange(1, 120)
         self.long_break.setValue(int(last.get("long_break", 15)))
         self.long_break.setSuffix(" 分钟")
@@ -272,7 +272,7 @@ class PomodoroDialog(QDialog):
 
         type_row = QHBoxLayout()
         type_row.setSpacing(8)
-        self.type = QComboBox()
+        self.type = theme.ChevronComboBox()
         self.type.setEditable(True)
         self.type.setInsertPolicy(QComboBox.NoInsert)
         self.type.lineEdit().setPlaceholderText("不填也行")
@@ -333,13 +333,13 @@ class CountdownDialog(QDialog):
 
         card, form = theme.card_form()
 
-        self.minutes = QSpinBox()
+        self.minutes = theme.ChevronSpinBox()
         self.minutes.setRange(0, 600)
         self.minutes.setValue(10)
         self.minutes.setSuffix(" 分钟")
         form.addRow("分钟", self.minutes)
 
-        self.seconds = QSpinBox()
+        self.seconds = theme.ChevronSpinBox()
         self.seconds.setRange(0, 59)
         self.seconds.setValue(0)
         self.seconds.setSuffix(" 秒")
@@ -347,7 +347,7 @@ class CountdownDialog(QDialog):
 
         type_row = QHBoxLayout()
         type_row.setSpacing(8)
-        self.type = QComboBox()
+        self.type = theme.ChevronComboBox()
         self.type.setEditable(True)
         self.type.setInsertPolicy(QComboBox.NoInsert)
         self.type.lineEdit().setPlaceholderText("不填也行")

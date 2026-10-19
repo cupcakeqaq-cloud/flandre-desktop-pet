@@ -10,6 +10,7 @@
 """
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QListWidget,
                                QListWidgetItem, QPushButton, QLineEdit, QLabel,
                                QFrame, QMessageBox)
@@ -54,6 +55,12 @@ class TodoDialog(QDialog):
         self.list.setAlternatingRowColors(False)
         self.list.itemChanged.connect(self._on_item_changed)
         self.list.itemDoubleClicked.connect(self._on_double_clicked)
+        # 「删除选中」要在换选中行时立刻可用/变灰；漏了这根线的话按钮会一直是灰的，
+        # 看起来像坏了（_refresh_stats 收不收参数都行，多余实参 Python 会忽略）。
+        self.list.currentRowChanged.connect(self._refresh_stats)
+        # Delete 键删当前选中项（一样会弹二次确认）
+        QShortcut(QKeySequence(Qt.Key_Delete), self.list,
+                  activated=self._delete)
         root.addWidget(self.list, 1)
 
         empty = QLabel("还没有任务，在下面加一条吧。")
@@ -111,7 +118,7 @@ class TodoDialog(QDialog):
                 f = item.font()
                 f.setStrikeOut(True)
                 item.setFont(f)
-            item.setToolTip("双击可以修改内容")
+            item.setToolTip(text + "\n（双击可修改）")   # 列表放不下的长任务悬停能看全
             self.list.addItem(item)
         self._loading = False
         self._refresh_stats()
@@ -143,6 +150,12 @@ class TodoDialog(QDialog):
     def _delete(self):
         row = self.list.currentRow()
         if row < 0 or row >= len(self.items):
+            return
+        text = self.items[row].get("text", "")
+        ok = QMessageBox.question(
+            self, "删除任务", f"确定删除「{text}」吗？",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if ok != QMessageBox.Yes:
             return
         self.items.pop(row)
         save_todos(self.items)
