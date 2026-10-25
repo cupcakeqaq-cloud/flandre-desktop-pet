@@ -33,6 +33,7 @@ CONTROL_PREFIX = "@"
 #   高度 = label.heightForWidth(定宽)  ← wordWrap 下这个方法才是可靠的
 BUBBLE_W = 260         # 气泡固定宽度（改这个数就能整体调宽窄），上限也是它
 OUTER_W = 24           # outer 左右内容边距 14 + 10
+WHO_DEFAULT = "芙兰朵露·斯卡蕾特"
 
 
 class SpeechBubble(QWidget):
@@ -52,7 +53,7 @@ class SpeechBubble(QWidget):
         # 顶行：角色名靠左下角，关闭键钉在气泡右上角
         top = QHBoxLayout()
         top.setSpacing(8)
-        self.title = QLabel("芙兰朵露·斯卡蕾特")
+        self.title = QLabel(WHO_DEFAULT)
         self.title.setStyleSheet(
             f"color: {BORDER}; font-size: 10pt; font-weight: bold; letter-spacing: 1px;")
         self.title.setAttribute(Qt.WA_TransparentForMouseEvents, True)
@@ -212,6 +213,10 @@ class SpeechBubble(QWidget):
         self.label.setFixedHeight(int(h))
         self.setFixedWidth(BUBBLE_W)
         self.setFixedHeight(int(h) + int(extra))
+
+    def set_who(self, name=""):
+        """气泡左上角写谁在说话：空串＝芙兰自己，否则写主人的昵称（语音输入用）。"""
+        self.title.setText(str(name or "").strip() or WHO_DEFAULT)
 
     def show_message(self, text, options=None):
         """弹出一段话（清空后重建按钮）。"""

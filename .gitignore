@@ -9,10 +9,17 @@ __pycache__/
 
 # 可执行文件与 _internal 都进仓库：
 # 别人下载 GitHub 源码仓库的 zip，解压后直接双击 芙兰朵露.exe 就能用，不用装 Python
+# 本地语音模型 model\asr（24 MB 的 onnx）也进仓库，不然 clone 下来就没有离线识别
 
 # 运行时生成的用户数据 / 日志
 data/gift.log
 data/settings.json
+data/chat_history.json
 data/*.tmp
 收藏/
+芙兰的收藏/
 debug.log
+
+# 构建产物 / 大体积原始素材（单个 >100MB，GitHub 传不上去）
+芙兰朵露_发布包.zip
+宣传素材/

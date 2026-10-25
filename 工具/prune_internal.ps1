@@ -79,10 +79,8 @@ $files = @(
     "PySide6\plugins\imageformats\qtga.dll",
     "PySide6\plugins\imageformats\qwbmp.dll",
     "PySide6\plugins\imageformats\qpdf.dll",
-    # OpenSSL runtime + ssl/hash modules: no network, no hashlib anywhere
-    "libcrypto-3-x64.dll",
-    "libssl-3-x64.dll",
-    "_ssl.pyd",
+    # OpenSSL runtime 得留着：在线模式要发 https 请求（删了就只剩「网好像不通」）。
+    # _hashlib 仍然不需要——聊天用不到 hashlib。
     "_hashlib.pyd",
     # Pillow AVIF codec: only PNG is ever opened
     "PIL\_avif.cp312-win_amd64.pyd",

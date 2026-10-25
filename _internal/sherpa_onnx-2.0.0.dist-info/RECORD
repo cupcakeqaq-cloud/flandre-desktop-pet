@@ -1,0 +1,14 @@
+sherpa_onnx/__init__.py,sha256=V7llNYMyfMDL72-FaCOwsT61k-aBH8OXx8eOfDl_Bjs,3022
+sherpa_onnx/cli.py,sha256=IPYzT7gyF_DGdxIGYA3PvjiFXTbo1YJm2yTjVf1jVKA,3822
+sherpa_onnx/display.py,sha256=vovWv0vAbxY1D13xciFd-xcogep7prFffo1Cg7GnFJU,2018
+sherpa_onnx/keyword_spotter.py,sha256=vripd3bSNkcuyOAC_Be1bEADRqNc9qsN8AO06TZjTas,9808
+sherpa_onnx/offline_recognizer.py,sha256=septm41pTXdivT4yzb889MRMR4J0I1fXkERq0i54lRw,69143
+sherpa_onnx/online_recognizer.py,sha256=IdVgv9WEkJiqkhctsUCll5EEsjUrw_JdAY6e_fEg7PE,45171
+sherpa_onnx/utils.py,sha256=JRMJ2LQf6NK6odv0rG7fT8asH6Zanjq3Y4xBvwlR6uA,6783
+sherpa_onnx/lib/_sherpa_onnx.cp312-win_amd64.pyd,sha256=tbjfn_RS0thALL74heRiez8hvVKCBVrKm-VcGcPr2PU,5417984
+sherpa_onnx-2.0.0.dist-info/licenses/LICENSE,sha256=Pd-b5cKP4n2tFDpdx27qJSIq0d1ok0oEcGTlbtL6QMU,11560
+sherpa_onnx-2.0.0.dist-info/METADATA,sha256=H4uUqinUqPVV0Lv_1KDmoN7kfPaTlR0hto-a7UmcI2o,60238
+sherpa_onnx-2.0.0.dist-info/WHEEL,sha256=smAfYAdc4xihz0sI8rUsw5fnCPd2yjYFBM0up6OiEDE,101
+sherpa_onnx-2.0.0.dist-info/entry_points.txt,sha256=dWE29AGWNFZmTl7a1PEWToWwDKD3TjXl8ulno9WKx1s,56
+sherpa_onnx-2.0.0.dist-info/top_level.txt,sha256=d-GKEpf-0t0HT6nU63F0vbbV6p2mJwAynt_cOTt-p3c,25
+sherpa_onnx-2.0.0.dist-info/RECORD,,

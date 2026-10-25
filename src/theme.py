@@ -42,7 +42,14 @@ FONT_SIZE = {
     "hint": 10,     # 说明文字
     "menu": 11,
     "bubble": 14,   # 气泡正文
+    "chat": 10,     # 聊天记录区（比正文小一档，长对话看着不压人）
 }
+
+
+def app_icon():
+    """整个程序的窗口图标：标题栏、任务栏、对话框都用它。"""
+    import config
+    return QIcon(str(config.ICON_PATH))
 
 
 def setup_dialog(dlg, title=None):
@@ -436,6 +443,9 @@ MENU_MARGIN = 16
 # 挪几个像素、QMenu::item 的 padding-left 只挪文字，都不动图标（实测）。要图标和文字
 # 一起右移只能加这个。
 MENU_PAD_LEFT = MENU_MARGIN + 6
+# 上下内边距：让首尾条目离卡片上下边的距离跟离左右边一样是 6px
+# （用户 2026-10-23 提的「菜单上下边太窄了，加宽到和左右边一样的宽度」）。
+MENU_PAD_Y = MENU_MARGIN + 6
 MENU_BORDER = 1                     # 卡片描边粗细（用户要求「很细小」）
 MENU_BORDER_COLOR = PRIMARY_SOFT
 
@@ -444,7 +454,7 @@ QMenu {{
     background: transparent;
     color: {TEXT};
     border: none;
-    padding: {MENU_MARGIN}px {MENU_MARGIN}px {MENU_MARGIN}px {MENU_PAD_LEFT}px;
+    padding: {MENU_PAD_Y}px {MENU_MARGIN}px {MENU_PAD_Y}px {MENU_PAD_LEFT}px;
     font-size: {FONT_SIZE['menu']}pt;
 }}
 QMenu::item {{
@@ -474,9 +484,22 @@ QMenu::icon {{
 PLAIN_MENU_STYLE = (
     MENU_STYLE.replace("background: transparent;", f"background: {CARD};")
     .replace("border: none;", f"border: 1px solid {PRIMARY}; border-radius: {MENU_RADIUS}px;")
-    .replace(f"padding: {MENU_MARGIN}px {MENU_MARGIN}px {MENU_MARGIN}px {MENU_PAD_LEFT}px;",
+    .replace(f"padding: {MENU_PAD_Y}px {MENU_MARGIN}px {MENU_PAD_Y}px {MENU_PAD_LEFT}px;",
              "padding: 6px;")
 )
+
+
+# 输入框/文本框的右键菜单：没有图标列，条目内边距收窄，条目文字由调用方给（中文）。
+TEXT_MENU_STYLE = PLAIN_MENU_STYLE.replace("padding: 10px 28px 10px 26px;",
+                                           "padding: 10px 30px;")
+
+
+def make_text_menu(parent=None):
+    """给输入框之类的小控件用的右键菜单（窄一点、跟窗口同一套配色）。"""
+    menu = QMenu(parent)
+    menu.setStyleSheet(TEXT_MENU_STYLE)
+    menu.setMinimumWidth(150)
+    return menu
 
 
 class RoundedMenu(QMenu):
@@ -582,6 +605,11 @@ _ICONS = {
                  ("l", [(32, 68), (22, 78)])],
     "quit":     [("l", [(46, 14), (22, 14), (22, 86), (78, 86), (78, 14), (54, 14)]),
                  ("l", [(50, 44), (50, 72)])],
+    # 对话气泡：圆角方框 + 左下小尖角 + 三个点（一笔画完，20px 下也别糊）
+    "chat":     [("l", [(22, 20), (78, 20), (88, 30), (88, 58), (78, 68),
+                        (50, 68), (30, 86), (36, 68), (22, 68), (14, 58),
+                        (14, 30), (22, 20)]),
+                 ("c", (38, 44), 5), ("c", (52, 44), 5), ("c", (66, 44), 5)],
 }
 
 _ICON_CACHE = {}

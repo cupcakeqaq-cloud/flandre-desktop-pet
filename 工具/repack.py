@@ -5,8 +5,9 @@
 容易把上一版验证过的依赖组合搞乱。这里只做「换掉我们自己那几个模块」这一件事：
 
 原 exe = 引导代码 + CArchive（pyimod / 入口脚本 / PYZ + TOC + cookie）。
-本脚本把 CArchive 里的条目逐个原样搬过来，**只把 PYZ 里那 13 个项目模块换成
-`src\\*.py` 新编译的版本**，其余第三方库的字节完全不动，然后重写 TOC 和 cookie。
+本脚本把 CArchive 里的条目逐个原样搬过来，**只把 PYZ 里那十几个项目模块换成
+`src\\*.py` 新编译的版本**（`src\\` 里新加的文件会自动追加成新条目），其余第三方库的
+字节完全不动，然后重写 TOC 和 cookie。
 所以写出来的 exe 除了我们改过的那几个模块之外，和原来逐字节一致。
 
 用法（在项目根目录下，注意要用 .venv 里的 python）：
@@ -22,11 +23,12 @@
 
 import argparse
 import marshal
+import os
+import re
 import shutil
 import struct
 import subprocess
 import sys
-import tempfile
 import time
 import zlib
 from pathlib import Path
@@ -42,6 +44,7 @@ try:
     from PyInstaller.building.utils import (get_code_object,
                                             replace_filename_in_code_object)
     from PyInstaller.compat import BYTECODE_MAGIC
+    from PyInstaller.loader.pyimod01_archive import PYZ_ITEM_MODULE
 except ImportError as exc:                                  # pragma: no cover
     sys.exit(f"需要 PyInstaller（用 .venv 里的 python 跑本脚本）：{exc}")
 
@@ -75,6 +78,7 @@ def rebuild_pyz(pyz_old, modules, tmp_dir):
     old_raw = _raw_pyz_toc(pyz_old)
 
     body, toc, offset = bytearray(), {}, PYZ_HEADER_LENGTH
+    redone = []
     for name, (typecode, _old_off, _old_len) in reader.toc.items():
         if name in modules:
             code = get_code_object(name, str(modules[name]), -1)
@@ -82,20 +86,87 @@ def rebuild_pyz(pyz_old, modules, tmp_dir):
                 code, f"{name.replace('.', '/')}.py")
             blob = zlib.compress(marshal.dumps(code),
                                  ZlibArchiveWriter._COMPRESSION_LEVEL)
+            redone.append(name)
         else:
             typecode, blob = old_raw[name][0], old_raw[name][1]
         toc[name] = (typecode, offset, len(blob))   # 运行时要的是 dict（见 pyimod01）
         body += blob
         offset += len(blob)
 
+    # 新增的模块（`src\\` 里有、旧 PYZ 里没有的）：追加到末尾。typecode 用 PYZ 里的
+    # 「模块」值 0，不是 CArchive 那套字符串码。
+    added = []
+    for name, src in sorted(modules.items()):
+        if name in toc:
+            continue
+        code = get_code_object(name, str(src), -1)
+        code = replace_filename_in_code_object(code, f"{name.replace('.', '/')}.py")
+        blob = zlib.compress(marshal.dumps(code),
+                             ZlibArchiveWriter._COMPRESSION_LEVEL)
+        toc[name] = (PYZ_ITEM_MODULE, offset, len(blob))
+        body += blob
+        offset += len(blob)
+        added.append(name)
+
     toc_bytes = marshal.dumps(toc)
     # 头是 17 字节：PYZ\0 + 字节码魔数 + TOC 偏移 + 5 字节填充（多一个都不能少）
     header = (ZlibArchiveWriter._PYZ_MAGIC_PATTERN + BYTECODE_MAGIC
               + struct.pack("!i", offset)
               + b"\0" * (PYZ_HEADER_LENGTH - 12))
-    print(f"   PYZ：{len(reader.toc)} 个模块，重编译 {len(modules)} 个项目模块"
-          f"（{', '.join(sorted(modules))}），其余字节原样保留")
+    print(f"   PYZ：{len(reader.toc)} 个模块，重编译 {len(redone)} 个项目模块"
+          f"（{', '.join(sorted(redone))}），其余字节原样保留")
+    if added:
+        print(f"   新增模块 {len(added)} 个已追加进 PYZ：{', '.join(added)}")
+    warn_missing_stdlib(toc, modules)
     return header + bytes(body) + toc_bytes
+
+
+def _packaged_modules():
+    """打包后**能 import 到**的 stdlib 名字：PYZ + base_library.zip + _internal 里的 .pyd。
+
+    PYZ 里只有一部分：`os` / `enum` / `stat` 这些在 `base_library.zip`，`winsound` /
+    `_ssl` 是 `_internal` 里的 pyd，本体 `re` 是包（`re/__init__.pyc`）。
+    """
+    names = set(sys.builtin_module_names)
+    base = ROOT / "_internal"
+    zip_path = base / "base_library.zip"
+    if zip_path.is_file():
+        import zipfile
+        with zipfile.ZipFile(zip_path) as z:
+            for entry in z.namelist():
+                if entry.endswith("/__init__.pyc"):
+                    names.add(entry.split("/")[0])
+                elif entry.endswith(".pyc"):
+                    names.add(entry[:-4])
+    if base.is_dir():
+        for pyd in base.rglob("*.pyd"):
+            names.add(pyd.stem)
+    return names
+
+
+def warn_missing_stdlib(toc, modules):
+    """扫一遍 src\\*.py 的 import：问一句「打包后这个模块真的 import 得到吗」。
+
+    踩过的坑：chat_ui.py 里 `import html`，而 `html` 既不在 PYZ 也不在
+    `base_library.zip`（项目以前从没用过，PyInstaller 当初就没打进去），于是运行时
+    一 import 就 ImportError —— 窗口版 exe 连 traceback 都看不见，表现就是
+    「右键点聊天，什么都没弹」。这里提前吼一声，别让人再去猜。
+    """
+    available = _packaged_modules() | set(toc)
+    missing = {}
+    for name, path in modules.items():
+        try:
+            text = Path(path).read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for mod in set(re.findall(r"^\s*(?:import|from)\s+([A-Za-z_]\w*)", text, re.M)):
+            if mod in available or mod not in sys.stdlib_module_names:
+                continue
+            missing.setdefault(mod, set()).add(name)
+    for mod, users in sorted(missing.items()):
+        print(f"   警告：{mod} 打包后 import 不到，却被 "
+              f"{', '.join(sorted(users))} 引用 —— 运行时会炸"
+              f"（要么别用它，要么在 PYZ 里补上）")
 
 
 def _raw_pyz_toc(pyz_bytes):
@@ -162,7 +233,9 @@ def patch(exe_path, out_path, check_only=False):
         sys.exit("TOC 对不上，不敢改——请改用 README 4.4 的完整 PyInstaller 流程")
     print(f"   TOC 校验通过（{len(orig_entries)} 个条目原样重建逐字节一致）")
 
-    tmp_dir = Path(tempfile.mkdtemp(prefix="repack_"))
+    # 临时目录放工作区里：在 DSH 沙箱下 mkdtemp 建出来的目录写不进去（系统临时目录也不可写）
+    tmp_dir = ROOT / ".tmp" / f"repack_{os.getpid()}_{time.time_ns()}"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
     try:
         blobs = {}
         with open(exe_path, "rb") as fp:
@@ -225,7 +298,7 @@ def smoke(exe_path):
     shutil.copy2(exe_path, sandbox / exe_path.name)
     subprocess.run(["cmd", "/c", "mklink", "/J", str(sandbox / "_internal"),
                     str(ROOT / "_internal")], capture_output=True, check=True)
-    for item in ("data", "font", "sound", "贴图"):
+    for item in ("data", "font", "sound", "贴图", "model"):
         shutil.copytree(ROOT / item, sandbox / item)
 
     proc = subprocess.Popen([str(sandbox / exe_path.name)], cwd=str(sandbox),

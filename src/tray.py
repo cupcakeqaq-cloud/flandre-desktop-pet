@@ -31,6 +31,8 @@ class Tray(QObject):
             self.pet.hide()
         else:
             self.pet.show()
+            # 手动叫出来就是要看：这次全屏期间别再自动躲回去
+            self.pet.leave_fullscreen_hidden()
         self.update_visibility()
 
     def on_activated(self, reason):

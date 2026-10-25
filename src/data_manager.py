@@ -4,7 +4,7 @@
 import json
 import threading
 
-from config import DATA_DIR, COLLECT_DIR
+from config import DATA_DIR, CHAT_HISTORY, COLLECT_DIR, OLD_COLLECT_DIR
 
 _lock = threading.Lock()
 
@@ -36,10 +36,36 @@ DEFAULT_SETTINGS = {
     "custom_task_types": [],
     "custom_countdown_types": [],
     "pomodoro": dict(DEFAULT_POMODORO),
+    # 在线模式（聊天）。enabled + 地址 / key / 模型都填了才算在线
+    "llm": {
+        "enabled": False,
+        "base_url": "https://api.deepseek.com",
+        "api_key": "",
+        "model": "deepseek-chat",
+        "temperature": 0.9,
+        "max_tokens": 300,
+        "timeout": 20,
+    },
+    # 主动看你屏幕（这一批只用到 hide_in_fullscreen，其余留给后面）
+    "watch": {"enabled": False, "cooldown_s": 600, "daily_cap": 100,
+              "hide_in_fullscreen": True},
+    # 语音（按住说话键说话，认字全在本机做；没有本地模型就完全不碰麦克风）
+    "voice": {"enabled": False, "hotkey": "F8"},
 }
 
 
+def _migrate_collect_dir():
+    # 2026-10-24 补充⑮：收藏夹改名成「芙兰的收藏」。老目录还在、新目录还没建，
+    # 就整个 rename 过去（里面的赠礼跟着走）；rename 不行就留着，不删用户的东西。
+    try:
+        if OLD_COLLECT_DIR.is_dir() and not COLLECT_DIR.exists():
+            OLD_COLLECT_DIR.rename(COLLECT_DIR)
+    except OSError:
+        pass
+
+
 def ensure_dirs():
+    _migrate_collect_dir()
     for d in (DATA_DIR, COLLECT_DIR):
         d.mkdir(parents=True, exist_ok=True)
 
@@ -137,3 +163,31 @@ def load_countdown():
 
 def save_countdown(items):
     _write_json(DATA_DIR / "countdown.json", items)
+
+
+# ---------- 聊天记录（在线模式） ----------
+def _chat_path():
+    # 用模块里的 DATA_DIR 拼，自检把 DATA_DIR 指到临时目录时也跟着走
+    return DATA_DIR / CHAT_HISTORY.name
+
+
+def load_chat_history():
+    data = _read_json(_chat_path(), {})
+    if not isinstance(data, dict):
+        data = {}
+    messages = data.get("messages")
+    if not isinstance(messages, list):
+        messages = []
+    usage = data.get("usage")
+    if not isinstance(usage, dict):
+        usage = {}
+    return {
+        "messages": [m for m in messages if isinstance(m, dict)],
+        "usage": {str(k): int(v) for k, v in usage.items()
+                  if isinstance(v, int) or str(v).isdigit()},
+        "last_date": str(data.get("last_date") or ""),
+    }
+
+
+def save_chat_history(history):
+    _write_json(_chat_path(), history)

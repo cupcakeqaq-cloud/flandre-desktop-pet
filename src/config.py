@@ -17,7 +17,9 @@ def app_dir() -> Path:
 APP_DIR = app_dir()
 TEX_DIR = APP_DIR / "贴图"
 DATA_DIR = APP_DIR / "data"
-COLLECT_DIR = APP_DIR / "收藏"
+COLLECT_DIR = APP_DIR / "芙兰的收藏"
+# 2026-10-24 补充⑮：收藏夹从「收藏」改名，老目录在启动时连内容一起搬过来（见 data_manager.ensure_dirs）
+OLD_COLLECT_DIR = APP_DIR / "收藏"
 FONT_DIR = APP_DIR / "font"
 SOUND_DIR = APP_DIR / "sound"
 
@@ -111,3 +113,50 @@ CLICK_SEASON_CHANCE = 0.05               # 左键点击时抽到季节问候的�
 # 频繁点击：窗口内累计 CLICK_ANNOY_COUNT 次就生气（贴图切「站立\3.png」+ 一句不耐烦）
 CLICK_ANNOY_COUNT = 5                    # 触发所需点击数（触发后重新计数）
 CLICK_ANNOY_WINDOW = 3.0                 # 计数窗口（秒），窗口外的旧点击自动作废
+
+# 点击回弹（按下压扁 + 松开弹回；鲸鱼插件是 scaleY(0.88) scaleX(1.05)，
+# 这里只压纵向：横向一缩放，竖边像素会被重采样吃成半透明锯齿，所以放弃 1.05）
+SQUASH_SCALE_Y = 0.88                    # 压扁时纵向压到
+SQUASH_MS = 220                          # 按下压扁时长（鲸鱼插件 transition 0.22s 同款）
+SQUASH_REBOUND_MS = 320                  # 松开弹回时长（比压下慢一点，过冲才看得见）
+SQUASH_TAP_MS = 140                      # 按住不足这么久就直接压到底再弹（照 pressUp 的 tap 处理）
+SQUASH_MASK_PAD = 7                      # 遮罩左右各放宽的像素（给颤抖留余量，防翅膀尖被切）
+TREMBLE_PX = 2.0                         # 按住时的颤抖幅度（左右各几像素）
+TREMBLE_HZ = 7.0                         # 按住时的颤抖频率
+BLINK_HOLD_SECONDS = 0.5                 # 松开后闭眼 5.png 再留多久（约 0.5~0.8s）
+NAP_WAKE_HOLD_MS = 5000                  # 打盹中按住多久才算被吵醒
+
+# 在线模式（模型现编台词）：连点当作同一下 / 请求失败那句的冷却
+AI_CLICK_DEBOUNCE = 0.4                  # 秒，距上一次点击不到这么久就忽略
+AI_ERR_COOLDOWN = 60.0                   # 秒，「电波接收失败」60 秒内只播一次
+
+# 全屏检测（比窗口矩形和显示器矩形，四边各允许差这么多像素）
+FULLSCREEN_TOL = 2
+
+# 桌面感知（activity.py）：只看前台程序的进程名 / 窗口标题 + 空闲时长，不截图
+ACTIVITY_IDLE_SECONDS = 300              # 超过这么久没摸键鼠就算「人不在」（一次空闲只报一次）
+ACTIVITY_ACTIVE_GAP = 60                 # 空闲不到这么久算「还在动」；连续工作只认连续的输入
+ACTIVITY_STREAK_SECONDS = 50 * 60        # 连续有输入满这么久就催休息（想快速测：临时改 180）
+ACTIVITY_STREAK_COOLDOWN = 30 * 60.0     # 「催休息」同类冷却（秒）
+ACTIVITY_BACK_COOLDOWN = 3600.0          # 「你回来了」每小时最多一次（秒）
+ACTIVITY_TITLE_MAX = 60                  # 窗口标题最多留这么多字（塞进提示词，别太长）
+ACTIVITY_MOVE_SECONDS = 2.0              # 空闲不到 2 秒算「这会儿正在动键鼠」（判断猛操作还是只看）
+# 「看你屏幕」这类后台活儿的节拍（毫秒）；宁可慢一点，别每帧都去问 Windows
+ACTIVITY_TICK_MS = 3000
+# 聊天记录（在线模式）
+CHAT_HISTORY = DATA_DIR / "chat_history.json"
+
+# 语音（按住热键说话 → 转文字 → 当用户输入交给她）。芙兰不出声，只回气泡
+VOICE_TICK_MS = 30                 # 热键轮询间隔（30ms：手一按就抓到，资源几乎没差别）
+VOICE_SAMPLE_RATE = 16000          # 16k 单声道 16bit：所有语音识别接口都吃这个
+VOICE_MIN_SECONDS = 0.6            # 短于这个当误触，直接丢掉（不吭声）
+VOICE_MAX_SECONDS = 60.0           # 按住超过这个就自动截断，不往接口里塞一分钟的废话
+VOICE_WAIT_SECONDS = 20.0          # 松开之后最多等这么久：转圈久了要自己收，不能空转
+# 头顶那个「大脑宕机」转圈（录音 + 等回答时转，12 张透明 PNG）
+VOICE_SPIN_DIR = TEX_DIR / "加载"
+VOICE_SPIN_SIZE = 64               # 画多大（240 的窗口里的逻辑像素）
+VOICE_SPIN_X = 0.46                # 圆心横向位置（占窗口宽度的比例；0.46 = 帽尖正中）
+VOICE_SPIN_Y = 0.00                # 上沿纵向位置（占窗口高度的比例；帽尖已在 3.8px，贴顶）
+VOICE_SPIN_MS = 80                 # 每格停留多久（12 格转一圈约 1 秒）
+# 本地离线识别（sherpa-onnx + 中文小模型）：模型放程序目录里，不塞进 exe
+STT_MODEL_DIR = APP_DIR / "model" / "asr"

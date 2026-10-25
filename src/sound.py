@@ -27,6 +27,8 @@ from config import SOUND_DIR
 
 TASK_DONE = "tada.wav"
 CYCLE_DONE = "TADA (2).wav"
+SQUISH_PRESS = "squish_press.wav"        # 按下（前半段）
+SQUISH_RELEASE = "squish_release.wav"    # 松开（后半段），照鲸鱼插件一样拆开播
 
 _available = None
 
@@ -59,3 +61,13 @@ def task_done():
 def cycle_done():
     """番茄钟整组做完 → TADA (2).wav"""
     play(CYCLE_DONE)
+
+
+def squish_press():
+    """按下芙兰 → 音效前半段"""
+    play(SQUISH_PRESS)
+
+
+def squish_release():
+    """松开芙兰 → 音效后半段（长按时前半段播完，松手才接上后半段）"""
+    play(SQUISH_RELEASE)
